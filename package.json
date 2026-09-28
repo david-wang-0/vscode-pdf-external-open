@@ -1,0 +1,37 @@
+{
+  "name": "pdf-external-open",
+  "displayName": "PDF: open externally (Okular)",
+  "description": "Stub custom editor for *.pdf that launches an external viewer and closes its own tab, so every open path (explorer, Ctrl+click, markdown links, LaTeX Workshop) lands in Okular.",
+  "version": "0.1.0",
+  "publisher": "david-wang-0",
+  "license": "MIT",
+  "engines": { "vscode": "^1.80.0" },
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "pdfExternalOpen.editor",
+        "displayName": "Open in external PDF viewer",
+        "selector": [{ "filenamePattern": "*.pdf" }, { "filenamePattern": "*.PDF" }],
+        "priority": "default"
+      }
+    ],
+    "configuration": {
+      "title": "PDF: open externally",
+      "properties": {
+        "pdfExternalOpen.command": {
+          "type": "string",
+          "default": "okular",
+          "description": "Executable used to open PDFs."
+        },
+        "pdfExternalOpen.args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["--unique", "${file}"],
+          "description": "Arguments; ${file} is replaced by the absolute path of the PDF."
+        }
+      }
+    }
+  }
+}
