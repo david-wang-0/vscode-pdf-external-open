@@ -34,7 +34,20 @@ To package instead: `npx @vscode/vsce package` and `code --install-extension *.v
 
 Examples: zathura `["${file}"]`, evince `["${file}"]`, sioyek `["--reuse-instance", "${file}"]`.
 
-## Pairing with LaTeX Workshop and SyncTeX (Okular)
+## Pairing with LaTeX Workshop
+
+The simplest split: LaTeX Workshop shows the build PDF in its own tab viewer and this extension
+sends every other PDF to the external viewer. The tab viewer is a webview LaTeX Workshop creates
+itself, so it bypasses editor associations and this stub never sees it:
+
+    "latex-workshop.view.pdf.viewer": "tab"
+
+Forward search (`Ctrl+Alt+J`) and inverse search (Ctrl+click in the tab) then need no external
+setup. The annotations you may add to a build PDF are overwritten by the next build anyway, so
+nothing is lost by keeping it out of the external viewer.
+
+### Alternative: build PDF in Okular too (external viewer + SyncTeX)
+
 
     "latex-workshop.view.pdf.viewer": "external",
     "latex-workshop.view.pdf.external.viewer.command": "okular",
@@ -44,6 +57,26 @@ Examples: zathura `["${file}"]`, evince `["${file}"]`, sioyek `["--reuse-instanc
 
 and in Okular, Settings → Configure Okular → Editor → Custom: `code -g %f:%l` for inverse search
 (Shift+click in the PDF jumps to the source line).
+
+### Keep the build PDF and other PDFs in separate Okular instances
+
+With the pairing above, give this extension **no** `--unique`:
+
+    "pdfExternalOpen.args": ["${file}"]
+
+Reason: `--unique` routes every open to the one unique Okular instance, and Okular's default is
+to load a new file *into the current view*. Opening a related paper from the explorer then
+replaced the paper's build PDF (and a later forward search replaced it back). Okular's
+"Open new files in tabs" option would avoid the replacing, but with tabs Okular's D-Bus
+interface reports the first-opened tab as the current document
+([KDE bug 502482](https://bugs.kde.org/show_bug.cgi?id=502482)), which breaks any tool that
+asks Okular what is being read (e.g. the okular MCP server). So instead: LaTeX Workshop keeps
+`--unique` and owns the unique instance, which only ever holds the build PDF; every other PDF
+gets its own Okular window. Cost: opening the same PDF twice from the explorer gives two windows.
+
+Verify: open a `.pdf` from the explorer while the build PDF is showing; a second window must
+appear and the first must keep its document. If Okular ever fixes the tab reporting, tabs plus
+`--unique` everywhere is the simpler setup again.
 
 ## License
 
