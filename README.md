@@ -58,25 +58,29 @@ nothing is lost by keeping it out of the external viewer.
 and in Okular, Settings → Configure Okular → Editor → Custom: `code -g %f:%l` for inverse search
 (Shift+click in the PDF jumps to the source line).
 
-### Keep the build PDF and other PDFs in separate Okular instances
+### One Okular window with tabs, or one window per PDF
 
-With the pairing above, give this extension **no** `--unique`:
+`--unique` routes every open to the one unique Okular instance, and Okular's default is to load
+a new file *into the current view*: opening a related paper from the explorer then replaced the
+paper's build PDF (and a later forward search replaced it back). Two ways out:
 
-    "pdfExternalOpen.args": ["${file}"]
+- **Tabs** (simplest): Okular's Settings → Configure Okular → General → "Open new files in tabs"
+  (`kwriteconfig6 --file okularpartrc --group General --key ShellOpenFileInTabs true`), and
+  `--unique` everywhere. Every PDF becomes a tab of one window. Okular's D-Bus interface still
+  reports the first-opened tab as the current document
+  ([KDE bug 502482](https://bugs.kde.org/show_bug.cgi?id=502482)), but the
+  [okular MCP server](https://github.com/david-wang-0/okular-mcp) reads each tab and goes by the
+  window title, so tools asking what is being read get the tab on show.
+- **One window per PDF**: give this extension **no** `--unique`,
 
-Reason: `--unique` routes every open to the one unique Okular instance, and Okular's default is
-to load a new file *into the current view*. Opening a related paper from the explorer then
-replaced the paper's build PDF (and a later forward search replaced it back). Okular's
-"Open new files in tabs" option would avoid the replacing, but with tabs Okular's D-Bus
-interface reports the first-opened tab as the current document
-([KDE bug 502482](https://bugs.kde.org/show_bug.cgi?id=502482)), which breaks any tool that
-asks Okular what is being read (e.g. the okular MCP server). So instead: LaTeX Workshop keeps
-`--unique` and owns the unique instance, which only ever holds the build PDF; every other PDF
-gets its own Okular window. Cost: opening the same PDF twice from the explorer gives two windows.
+      "pdfExternalOpen.args": ["${file}"]
 
-Verify: open a `.pdf` from the explorer while the build PDF is showing; a second window must
-appear and the first must keep its document. If Okular ever fixes the tab reporting, tabs plus
-`--unique` everywhere is the simpler setup again.
+  so LaTeX Workshop keeps `--unique` and owns the unique instance, which only ever holds the
+  build PDF, and every other PDF gets its own Okular window. Cost: opening the same PDF twice
+  from the explorer gives two windows.
+
+Verify: open a `.pdf` from the explorer while the build PDF is showing; a new tab (tabs) or a
+second window (one window per PDF) must appear, and the build PDF must stay open.
 
 ## License
 
